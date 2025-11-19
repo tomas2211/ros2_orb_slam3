@@ -54,57 +54,52 @@ using std::placeholders::_1; //* TODO why this is suggested in official tutorial
 
 //* Node specific definitions
 class MonocularMode : public rclcpp::Node
-{   
-    //* This slam node inherits from both rclcpp and ORB_SLAM3::System classes
-    //* public keyword needs to come before the class constructor and anything else
-    public:
-    std::string experimentConfig = ""; // String to receive settings sent by the python driver
-    double timeStep; // Timestep data received from the python node
-    std::string receivedConfig = "";
+{
+  //* This slam node inherits from both rclcpp and ORB_SLAM3::System classes
+  //* public keyword needs to come before the class constructor and anything
+  //else
+  // public:
+  // std::string experimentConfig = ""; // String to receive settings sent by
+  // the python driver double timeStep; // Timestep data received from the
+  // python node std::string receivedConfig = "";
 
-    //* Class constructor
-    MonocularMode(); // Constructor 
+  //* Class constructor
+public:
+  MonocularMode();  // Constructor
+  ~MonocularMode(); // Destructor
 
-    ~MonocularMode(); // Destructor
-        
-    private:
-        
-        // Class internal variables
-        std::string homeDir = "";
-        std::string packagePath = ""; //! Change to match path to your workspace
-        std::string OPENCV_WINDOW = ""; // Set during initialization
-        std::string nodeName = ""; // Name of this node
-        std::string vocFilePath = ""; // Path to ORB vocabulary provided by DBoW2 package
-        std::string settingsFilePath = ""; // Path to settings file provided by ORB_SLAM3 package
-        bool bSettingsFromPython = false; // Flag set once when experiment setting from python node is received
-        
-        std::string subexperimentconfigName = ""; // Subscription topic name
-        std::string pubconfigackName = ""; // Publisher topic name
-        std::string subImgMsgName = ""; // Topic to subscribe to receive RGB images from a python node
-        std::string subTimestepMsgName = ""; // Topic to subscribe to receive the timestep related to the 
+private:
+  const std::string SUB_IMG_MSG_NAME = "/camera/image_raw/compressed";
 
-        //* Definitions of publisher and subscribers
-        rclcpp::Subscription<std_msgs::msg::String>::SharedPtr expConfig_subscription_;
-        rclcpp::Publisher<std_msgs::msg::String>::SharedPtr configAck_publisher_;
-        rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subImgMsg_subscription_;
-        rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr subTimestepMsg_subscription_;
+  rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr
+      subImgMsg_subscription_;
+  rclcpp::Subscription<sensor_msgs::msg::CompressedImage>::SharedPtr
+      subCImgMsg_subscription_;
 
-        //* ORB_SLAM3 related variables
-        ORB_SLAM3::System* pAgent; // pointer to a ORB SLAM3 object
-        ORB_SLAM3::System::eSensor sensorType;
-        bool enablePangolinWindow = false; // Shows Pangolin window output
-        bool enableOpenCVWindow = false; // Shows OpenCV window output
+  //* ORB_SLAM3 related variables
+  std::shared_ptr<ORB_SLAM3::System> pAgent; // pointer to a ORB SLAM3 object
+  ORB_SLAM3::System::eSensor sensorType;
+  bool enablePangolinWindow = false; // Shows Pangolin window output
+  bool enableOpenCVWindow = false;   // Shows OpenCV window output
 
-        //* ROS callbacks
-        void experimentSetting_callback(const std_msgs::msg::String& msg); // Callback to process settings sent over by Python node
-        void Timestep_callback(const std_msgs::msg::Float64& time_msg); // Callback to process the timestep for this image
-        void Img_callback(const sensor_msgs::msg::Image& msg); // Callback to process RGB image and semantic matrix sent by Python node
-        
-        //* Helper functions
-        // ORB_SLAM3::eigenMatXf convertToEigenMat(const std_msgs::msg::Float32MultiArray& msg); // Helper method, converts semantic matrix eigenMatXf, a Eigen 4x4 float matrix
-        void initializeVSLAM(std::string& configString); //* Method to bind an initialized VSLAM framework to this node
+  //* ROS callbacks
+  // void experimentSetting_callback(const std_msgs::msg::String& msg); //
+  // Callback to process settings sent over by Python node void
+  // Timestep_callback(const std_msgs::msg::Float64& time_msg); // Callback to
+  // process the timestep for this image
+  void Img_callback(const sensor_msgs::msg::Image
+                        &msg); // Callback to process RGB image and semantic
+                               // matrix sent by Python node
+  void CImg_callback(const sensor_msgs::msg::CompressedImage &msg);
 
-
+  //* Helper functions
+  // ORB_SLAM3::eigenMatXf convertToEigenMat(const
+  // std_msgs::msg::Float32MultiArray& msg); // Helper method, converts semantic
+  // matrix eigenMatXf, a Eigen 4x4 float matrix
+  void initializeVSLAM(
+      const std::string &strVocFile,
+      const string &strSettingsFile); //* Method to bind an initialized VSLAM
+                                      //framework to this node
 };
 
 #endif
